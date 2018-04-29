@@ -106,7 +106,9 @@ class Drawer
             }
         })
 
-        this.side = options.side || 'left'
+        this._side = options.side || 'left'
+        this.vertical = this.side === 'left' || this.side === 'right'
+        this._setSide(true)
         if (options.open)
         {
             this.open(true)
@@ -119,7 +121,7 @@ class Drawer
      */
     update()
     {
-        this._setSide()
+        this._setSide(true)
     }
 
     get side()
@@ -161,7 +163,7 @@ class Drawer
     set size(value)
     {
         this._size = value
-        this._setSide()
+        this._setSide(true)
         if (this.opened)
         {
             this.open(false)
@@ -175,15 +177,78 @@ class Drawer
     set barSize(value)
     {
         this._barSize = value
-        this._setSide()
+        this._setSide(true)
         if (this.opened)
         {
             this.open(false)
         }
     }
 
-    _setSide()
+    /**
+     * change top value of drawer
+     * @type {number}
+     */
+    get top()
     {
+        return this.div.style.top
+    }
+    set top(value)
+    {
+        this.div.style.top = this.bar.style.top = value
+    }
+
+    /**
+     * change left value of drawer
+     * @type {number}
+     */
+    get left()
+    {
+        return this.div.style.left
+    }
+    set left(value)
+    {
+        this.div.style.left = this.bar.style.left = value
+    }
+
+    /**
+     * change bottom value of drawer
+     * @type {number}
+     */
+    get bottom()
+    {
+        return this.div.style.bottom
+    }
+    set bottom(value)
+    {
+        this.div.style.bottom = this.bar.style.bottom = value
+    }
+
+    /**
+     * change right value of drawer
+     * @type {number}
+     */
+    get right()
+    {
+        return this.div.style.right
+    }
+    set right(value)
+    {
+        this.div.style.right = this.bar.style.right = value
+    }
+
+    _setSide(noReset)
+    {
+        if (!noReset)
+        {
+            for (let side of this.all)
+            {
+                if (side !== this.side)
+                {
+                    this.div.style[side] = 'unset'
+                    this.bar.style[side] = 'unset'
+                }
+            }
+        }
         if (this.vertical)
         {
             this.div.style.width = this._size ? this._size + 'px' : 'auto'
@@ -232,14 +297,6 @@ class Drawer
             {
                 this.bar.style.width = this.div.offsetWidth + 'px'
                 this.bar.style.left = this.div.offsetLeft + 'px'
-            }
-        }
-        for (let side of this.all)
-        {
-            if (side !== this.side)
-            {
-                this.div.style[side] = 'unset'
-                this.bar.style[side] = 'unset'
             }
         }
         if (this.opened)

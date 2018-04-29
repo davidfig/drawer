@@ -1,3 +1,5 @@
+const clicked = require('clicked')
+
 const highlight = require('./highlight')
 const Drawer = require('../src/drawer')
 
@@ -50,20 +52,38 @@ function test()
     })
 
     // top
-    new Drawer({
+    const drawer = new Drawer({
         size: 75,
         open: true,
         styles: {
             left: '200px',
-            background: 'rgba(150,150,100,0.5)',
+            background: 'rgb(150,150,100)',
             color: 'white',
         },
         side: 'top',
-        content: 'small top drawer',
+        content: '<div id="top">click to move</div>',
         contentStyles: {
             padding: '0.5em'
         }
-
+    })
+    const top = document.getElementById('top')
+    top.style.cursor = 'pointer'
+    const sides = ['right', 'bottom', 'left', 'top']
+    clicked(top, () =>
+    {
+        let next = sides.indexOf(drawer.side) + 1
+        next = next === sides.length ? 0 : next
+        drawer.side = sides[next]
+        if (drawer.vertical)
+        {
+            drawer.top = '200px'
+            drawer.update()
+        }
+        else
+        {
+            drawer.left = '200px'
+            drawer.update()
+        }
     })
 }
 
