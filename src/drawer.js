@@ -1,4 +1,4 @@
-const Ease = require('dom-ease')
+const Penner = require('penner')
 const moment = require('moment')
 
 const html = require('./html')
@@ -21,15 +21,17 @@ module.exports = class Drawer
      * @param {number} [options.duration=500] animate time for opening drawer on click
      * @param {number} [options.threshold=10] number of pixels before move starts
      * @param {number} [options.timeRecent=100] maximum time in milliseconds to use when calculating acceleration
-     * @param {number} [options.minVelocty=0.001] minimum velocity (pixels/millisecond) for opening and closing after a drag
+     * @param {number} [options.minVelocty=0.5] minimum velocity (pixels/millisecond) for opening and closing after a drag
+     * @param {string} [options.content] HTML content for the drawer
+     * @param {object} [options.contentStyles] styles for content of drawer
      */
     constructor(options)
     {
         options = options || {}
-        this.ease = new Ease({ ease: options.ease || 'easeInOutSine', duration: typeof options.duration !== 'undefined' ? options.duration : 500 })
         const parent = options.parent || document.body
         this._size = options.size
         this._barSize = options.barSize || 20
+        this.ease = options.ease ? (typeof options.ease === 'function' ? options.ease : Penner[options.ease]) : Penner.linear
 
         /**
          * whether the drawer should take up the full width or height
@@ -40,7 +42,7 @@ module.exports = class Drawer
          * minimum velocity (pixels/millisecond) for opening and closing after a drag
          * @type (number)
          */
-        this.minVelocity = options.minVelocity || 0.01
+        this.minVelocity = options.minVelocity || 0.5
 
         /**
          * maximum time in milliseconds to use when calculating acceleration
@@ -64,7 +66,7 @@ module.exports = class Drawer
          * animate time for opening drawer on click
          * @type {number}
          **/
-        this.duration = options.duration
+        this.duration = typeof options.duration === 'undefined' ? 500 : options.duration
 
         /**
          * Main drawer element
@@ -73,11 +75,17 @@ module.exports = class Drawer
         this.div = html({
             parent,
             defaultStyles: {
-                'position': 'absolute',
+                'position': 'fixed',
                 'background': 'white'
             },
             styles: options.styles
         })
+
+        /**
+         * use this to add content to the div
+         * @type {HTMLElement}
+         */
+        this.content = html({ parent: this.div, styles: options.contentStyles, html: options.content })
 
         if (options.className)
         {
@@ -91,7 +99,7 @@ module.exports = class Drawer
         this.bar = html({
             parent,
             styles: {
-                'position': 'absolute',
+                'position': 'fixed',
                 'background': options.barBackground || 'rgba(0,0,0,0.15)',
                 'cursor': ['drag', '-webkit-grab', 'pointer']
             }
@@ -103,6 +111,14 @@ module.exports = class Drawer
             this.open(true)
         }
         this._addListeners()
+    }
+
+    /**
+     * call this when the contents of the drawer are updated
+     */
+    update()
+    {
+        this._setSide()
     }
 
     get side()
@@ -164,24 +180,63 @@ module.exports = class Drawer
 
     _setSide()
     {
-        if (this.full)
+        if (this.vertical)
         {
-            if (this.vertical)
+            this.div.style.width = this._size ? this._size + 'px' : 'auto'
+            this.bar.style.width = this.barSize + 'px'
+            if (this.opened)
             {
-                this.div.style.top = 0
-                this.div.style.height = this.bar.style.height = '100vh'
-                this.div.style.width = this._size ? this._size + 'px' : 'auto'
-                this.bar.style.width = this.barSize + 'px'
-                if (this.opened)
-                {
-                    this.div.style.left = 0
-                }
-                else
-                {
-                    this.div.style.left = -this.size + 'px'
-                }
+                this.div.style[this._side] = 0
+                this.bar.style[this._side] = this.div.offsetWidth + 'px'
             }
-            this.bar.style[this.side] = 0
+            else
+            {
+                this.div.style[this._side] = -this.size + 'px'
+                this.bar.style[this._side] = 0
+            }
+            if (this.full)
+            {
+                this.div.style.top = this.bar.style.top = 0
+                this.div.style.height = this.bar.style.height = '100vh'
+            }
+            else
+            {
+                this.bar.style.height = this.div.offsetHeight + 'px'
+                this.bar.style.top = this.div.offsetTop + 'px'
+            }
+        }
+        else
+        {
+            this.div.style.height = this._size ? this._size + 'px' : 'auto'
+            this.bar.style.height = this.barSize + 'px'
+            if (this.opened)
+            {
+                this.div.style[this._side] = 0
+                this.bar.style[this._side] = this.div.offsetHeight + 'px'
+            }
+            else
+            {
+                this.div.style[this._side] = -this.size + 'px'
+                this.bar.style[this._side] = 0
+            }
+            if (this.full)
+            {
+                this.div.style.left = this.bar.style.left = 0
+                this.div.style.width = this.bar.style.width = '100vw'
+            }
+            else
+            {
+                this.bar.style.width = this.div.offsetWidth + 'px'
+                this.bar.style.left = this.div.offsetLeft + 'px'
+            }
+        }
+        if (this.opened)
+        {
+            this.open(true)
+        }
+        else
+        {
+            this.close(true)
         }
     }
 
@@ -194,9 +249,9 @@ module.exports = class Drawer
         document.body.addEventListener('mousemove', (e) => this._move(e), { passive: false })
         document.body.addEventListener('touchmove', (e) => this._move(e), { passive: false })
         this.bar.addEventListener('mouseup', (e) => this._up(e))
-        this.bar.addEventListener('mousecancel', (e) => this._up(e))
         this.bar.addEventListener('touchend', (e) => this._up(e))
         document.body.addEventListener('mouseup', (e) => this._up(e))
+        document.body.addEventListener('mouseleave', (e) => this._up(e))
         document.body.addEventListener('touchend', (e) => this._up(e))
     }
 
@@ -251,17 +306,58 @@ module.exports = class Drawer
     {
         if (this.down && this._checkThreshold(e))
         {
-            if (this.side === 'left' || this.side === 'right')
+            let value
+            if (this.vertical)
             {
-                let x = e.pageX - this.barSize / 2
-                x = x > this.size ? this.size : x
-                x = x < 0 ? 0 : x
-                this.div.style.left = x - this.size + 'px'
-                this.bar.style.left = x + 'px'
-                this.changes.push({ value: x, time: moment() })
+                if (this.side === 'left')
+                {
+                    value = e.pageX - this.barSize / 2
+                }
+                else
+                {
+                    value = window.innerWidth - e.pageX + this.barSize / 2
+                }
             }
+            else
+            {
+                if (this.side === 'top')
+                {
+                    value = e.pageY - this.barSize / 2
+                }
+                else
+                {
+                    value = window.innerHeight - e.pageY + this.barSize / 2
+                }
+            }
+            value = value > this.size ? this.size : value
+            value = value < 0 ? 0 : value
+            this.div.style[this.side] = value - this.size + 'px'
+            this.bar.style[this.side] = value + 'px'
+            this.changes.push({ value, time: moment() })
             e.preventDefault()
         }
+    }
+
+    _getVelocity()
+    {
+        const now = moment()
+        let current = this.changes[this.changes.length - 1]
+        for (let i = this.changes.length - 2; i >= 0; i--)
+        {
+            if (now.diff(this.changes[i].time) > this.timeRecent)
+            {
+                i = i < this.changes.length - 1 ? i + 1 : i
+                break
+            }
+            else
+            {
+                current = this.changes[i]
+            }
+        }
+        const last = this.changes[this.changes.length - 1]
+        const deltaDistance = current.value - last.value
+        const deltaTime = current.time.diff(last.time)
+        return deltaDistance / deltaTime
     }
 
     _up()
@@ -276,24 +372,7 @@ module.exports = class Drawer
             {
                 if (this.changes.length > 2)
                 {
-                    const now = moment()
-                    let current = this.changes[this.changes.length - 1]
-                    for (let i = this.changes.length - 2; i >= 0; i--)
-                    {
-                        if (now.diff(this.changes[i].time) > this.timeRecent)
-                        {
-                            i = i < this.changes.length - 1 ? i + 1 : i
-                            break
-                        }
-                        else
-                        {
-                            current = this.changes[i]
-                        }
-                    }
-                    const last = this.changes[this.changes.length - 1]
-                    const deltaDistance = current.value - last.value
-                    const deltaTime = current.time.diff(last.time)
-                    let velocity = deltaDistance / deltaTime
+                    let velocity = this._getVelocity()
                     if (velocity === 0)
                     {
                         this._forceToggle()
@@ -302,7 +381,7 @@ module.exports = class Drawer
                     {
                         if (Math.abs(velocity) < this.minVelocity)
                         {
-                            velocity = this.minVelocity * (velocity < 0)
+                            velocity = this.minVelocity * (velocity < 0 ? -1 : 1)
                         }
                         if (velocity > 0)
                         {
@@ -363,7 +442,7 @@ module.exports = class Drawer
     {
         if (this.down || !this.opened)
         {
-            this.ease.removeAll()
+            this.easing = null
             if (noAnimate)
             {
                 this.div.style[this.side] = 0
@@ -379,13 +458,25 @@ module.exports = class Drawer
 
     _openAnimate(velocity)
     {
-        const change = {}
-        change[this.side] = 0
-        const barChange = {}
-        barChange[this.side] = this.size
-        const duration = velocity ? Math.abs(0 - this.div.offsetWidth) / velocity : this.duration
-        this.ease.add(this.div, change, { duration })
-        this.ease.add(this.bar, barChange, { duration })
+        const end = 0
+        const duration = velocity ? Math.abs(0 - this.size) / velocity : this.duration
+        this.easing = { start: this._getCurrent(), end, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        requestAnimationFrame(() => this.update())
+    }
+
+    _getCurrent()
+    {
+        switch (this.side)
+        {
+            case 'left':
+                return this.div.offsetLeft
+            case 'right':
+                return this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
+            case 'top':
+                return this.div.offsetTop
+            case 'bottom':
+                return window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
+        }
     }
 
     /**
@@ -396,7 +487,7 @@ module.exports = class Drawer
     {
         if (this.down || this.opened)
         {
-            this.ease.removeAll()
+            this.easing = null
             if (noAnimate)
             {
                 this.div.style[this.side] = -this.size + 'px'
@@ -412,13 +503,29 @@ module.exports = class Drawer
 
     _closeAnimate(velocity)
     {
-        const change = {}
-        change[this.side] = -this.size
-        const barChange = {}
-        barChange[this.side] = 0
-        const side = this.side.substr(0, 1).toUpperCase() + this.side.substr(1)
-        const duration = velocity ? Math.abs((this.div['offset' + side] - this.size) / velocity) : this.duration
-        this.ease.add(this.div, change, { duration })
-        this.ease.add(this.bar, barChange, { duration })
+        const start = this._getCurrent()
+        const duration = velocity ? Math.abs((start - this.size) / velocity) : this.duration
+        this.easing = { start, end: -this.size, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        requestAnimationFrame(() => this.update())
+    }
+
+    update()
+    {
+        if (this.easing)
+        {
+            let duration = moment().diff(this.easing.time)
+            duration = duration > this.easing.duration ? this.easing.duration : duration
+            const value = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
+            this.div.style[this.side] = value + 'px'
+            this.bar.style[this.side] = value + this.size + 'px'
+            if (duration === this.easing.duration)
+            {
+                this.easing = null
+            }
+            else
+            {
+                requestAnimationFrame(() => this.update())
+            }
+        }
     }
 }

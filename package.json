@@ -1,0 +1,33 @@
+{
+  "name": "yy-drawer",
+  "version": "0.5.0",
+  "description": "A vanilla-javascript drawer UI component",
+  "main": "dist/drawer.js",
+  "scripts": {
+    "test": "./node_modules/.bin/budo docs/code.js:index.js --dir docs --live"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidfig/drawer.git"
+  },
+  "keywords": [
+    "drawer",
+    "UI",
+    "javascript"
+  ],
+  "author": "David Figatner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/davidfig/drawer/issues"
+  },
+  "homepage": "https://github.com/davidfig/drawer#readme",
+  "devDependencies": {
+    "budo": "^11.2.0",
+    "fork-me-github": "^1.2.0",
+    "highlight.js": "^9.12.0"
+  },
+  "dependencies": {
+    "moment": "^2.22.1",
+    "penner": "^0.1.3"
+  }
+}
