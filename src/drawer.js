@@ -127,12 +127,15 @@ class Drawer
     }
     set side(value)
     {
-        this._side = value
-        this.vertical = value === 'left' || value === 'right'
-        this._setSide()
-        if (this.opened)
+        if (this._side !== value)
         {
-            this.open(true)
+            this._side = value
+            this.vertical = value === 'left' || value === 'right'
+            this._setSide()
+            if (this.opened)
+            {
+                this.open(true)
+            }
         }
     }
 
