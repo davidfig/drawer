@@ -55,7 +55,7 @@ function test()
         open: true,
         styles: {
             left: '200px',
-            background: 'rgb(150,150,100)',
+            background: 'rgba(150,150,100,0.5)',
             color: 'white',
         },
         side: 'top',

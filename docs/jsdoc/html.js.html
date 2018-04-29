@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>yy-drawer API Documentation</title>
+    
+    <meta name="description" content="Documentation for yy-drawer library" />
+    
+        <meta name="keywords" content="docs, documentation, html5, javascript, jsdoc, drawer, UI" />
+        <meta name="keyword" content="docs, documentation, html5, javascript, jsdoc, drawer, UI" />
+    
+    
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/jquery.min.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:400,700" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/main.css">
+
+    
+    <script>
+    var config = {"monospaceLinks":false,"cleverLinks":false,"default":{"outputSourceFiles":true},"applicationName":"yy-drawer","footer":"by YOPEY YOPEY LLC (yopeyopey.com)","copyright":"Copyright © 2018 YOPEY YOPEY LLC.","meta":{"title":"yy-drawer API Documentation","description":"Documentation for yy-drawer library","keyword":"docs, documentation, html5, javascript, jsdoc, drawer, UI"}};
+    </script>
+    
+
+    
+</head>
+<body>
+<div id="wrap" class="clearfix">
+    
+<div class="navigation">
+    <h3 class="applicationName"><a href="index.html">yy-drawer</a></h3>
+    <button id="menuToggle" class="btn btn-link btn-lg menu-toggle">
+        <span class="glyphicon glyphicon-menu-hamburger"></span>
+    </button>
+    <div class="search">
+        <input id="search" type="text" class="form-control input-md" placeholder="Search...">
+    </div>
+    <ul class="list">
+    
+        
+        <li class="item" data-name="Drawer">
+            <span class="title  ">
+                
+                <a href="Drawer.html">Drawer</a>
+            </span>
+            <ul class="members itemMembers">
+            
+            <span class="subtitle">Members</span>
+            
+                <li class="parent " data-name="Drawer#auto"><a href="Drawer.html#auto">auto</a></li>
+            
+                <li class="parent " data-name="Drawer#bar"><a href="Drawer.html#bar">bar</a></li>
+            
+                <li class="parent " data-name="Drawer#content"><a href="Drawer.html#content">content</a></li>
+            
+                <li class="parent " data-name="Drawer#div"><a href="Drawer.html#div">div</a></li>
+            
+                <li class="parent " data-name="Drawer#duration"><a href="Drawer.html#duration">duration</a></li>
+            
+                <li class="parent " data-name="Drawer#full"><a href="Drawer.html#full">full</a></li>
+            
+                <li class="parent " data-name="Drawer#minVelocity"><a href="Drawer.html#minVelocity">minVelocity</a></li>
+            
+                <li class="parent " data-name="Drawer#threshold"><a href="Drawer.html#threshold">threshold</a></li>
+            
+                <li class="parent " data-name="Drawer#timeRecent"><a href="Drawer.html#timeRecent">timeRecent</a></li>
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li class="parent  " data-name="Drawer#close"><a href="Drawer.html#close">close</a></li>
+            
+                <li class="parent  " data-name="Drawer#open"><a href="Drawer.html#open">open</a></li>
+            
+                <li class="parent  " data-name="Drawer#toggle"><a href="Drawer.html#toggle">toggle</a></li>
+            
+                <li class="parent  " data-name="Drawer#update"><a href="Drawer.html#update">update</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+    </ul>
+</div>
+    <div class="main">
+        
+        <h1 class="page-title" data-filename="Drawer">Source: html.js</h1>
+        
+        
+
+
+    
+    <section>
+        <header>
+            <div class="header content-size">
+                <h2>html.js</h2>
+            </div>
+        </header>
+        <article>
+            <pre id="source-code" class="prettyprint source "><code>function html(options)
+{
+    options = options || {}
+    const object = document.createElement(options.type || 'div')
+    if (options.parent)
+    {
+        options.parent.appendChild(object)
+    }
+    if (options.defaultStyles)
+    {
+        html.styles(object, options.defaultStyles)
+    }
+    if (options.styles)
+    {
+        html.styles(object, options.styles)
+    }
+    if (options.html)
+    {
+        object.innerHTML = options.html
+    }
+    if (options.id)
+    {
+        object.id = options.id
+    }
+    return object
+}
+
+html.styles = function (object, styles)
+{
+    for (let style in styles)
+    {
+        if (Array.isArray(styles[style]))
+        {
+            for (let entry of styles[style])
+            {
+                object.style[style] = entry
+                if (object.style[style] === entry)
+                {
+                    break
+                }
+            }
+        }
+        else
+        {
+            object.style[style] = styles[style]
+        }
+    }
+}
+
+/**
+ * determines global location of a div
+ * from https://stackoverflow.com/a/26230989/1955997
+ * @param {HTMLElement} e
+ * @returns {PointLike}
+ */
+html.toGlobal = function(e)
+{
+    const box = e.getBoundingClientRect()
+
+    const body = document.body
+    const docEl = document.documentElement
+
+    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
+    const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+
+    const clientTop = docEl.clientTop || body.clientTop || 0
+    const clientLeft = docEl.clientLeft || body.clientLeft || 0
+
+    const top = box.top + scrollTop - clientTop
+    const left = box.left + scrollLeft - clientLeft
+
+    return { y: Math.round(top), x: Math.round(left) }
+}
+
+module.exports = html</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+
+        
+
+        <footer class="content-size">
+            <div class="footer">
+                Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 29 2018 17:00:53 GMT+0800 (DST)
+            </div>
+        </footer>
+    </div>
+</div>
+<script>prettyPrint();</script>
+<script src="scripts/main.js"></script>
+</body>
+</html>
