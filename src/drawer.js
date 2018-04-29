@@ -32,6 +32,7 @@ class Drawer
         this._size = options.size
         this._barSize = options.barSize || 20
         this.ease = options.ease ? (typeof options.ease === 'function' ? options.ease : Penner[options.ease]) : Penner.linear
+        this.all = ['left', 'right', 'top', 'bottom']
 
         /**
          * whether the drawer should take up the full width or height
@@ -231,6 +232,14 @@ class Drawer
             {
                 this.bar.style.width = this.div.offsetWidth + 'px'
                 this.bar.style.left = this.div.offsetLeft + 'px'
+            }
+        }
+        for (let side of this.all)
+        {
+            if (side !== this.side)
+            {
+                this.div.style[side] = 'unset'
+                this.bar.style[side] = 'unset'
             }
         }
         if (this.opened)
