@@ -1,9 +1,11 @@
 const Penner = require('penner')
 const moment = require('moment')
+const Events = require('eventemitter3')
 
-const html = require('./html')
+const utils = require('./utils')
+let defaults = require('./defaults')
 
-class Drawer
+class Drawer extends Events
 {
     /**
      * @param {object} [options]
@@ -14,6 +16,7 @@ class Drawer
      * @param {number} [options.barSize=20] size (in pixels) of drag bar
      * @param {boolean} [options.full=true] whether the drawer should take up the full width or height
      * @param {boolean} [options.open] start with drawer open
+     * @param {boolean} [options.noInteraction] open drawer only programmatically
      * @param {object} [options.styles] styles for div
      * @param {string} [options.className] class name for div
      * @param {string} [options.barBackground=rgba(0,0,0,0.25)] background setting for drag bar
@@ -24,92 +27,110 @@ class Drawer
      * @param {number} [options.minVelocty=0.5] minimum velocity (pixels/millisecond) for opening and closing after a drag
      * @param {string} [options.content] HTML content for the drawer
      * @param {object} [options.contentStyles] styles for content of drawer
+     * @fires opening
+     * @fires closing
+     * @fires opened
+     * @fires closed
+     * @fires location
      */
     constructor(options)
     {
-        options = options || {}
-        const parent = options.parent || document.body
-        this._size = options.size
-        this._barSize = options.barSize || 20
-        this.ease = options.ease ? (typeof options.ease === 'function' ? options.ease : Penner[options.ease]) : Penner.linear
+        super()
+        this.options = utils.options(options, Drawer._defaults)
+        this._size = this.options.size
+        this._barSize = this.options.barSize
+        this.ease = this.options.ease ? (typeof this.options.ease === 'function' ? this.options.ease : Penner[this.options.ease]) : Penner['easeInOutSine']
         this.all = ['left', 'right', 'top', 'bottom']
-
-        /**
-         * whether the drawer should take up the full width or height
-         */
-        this.full = options.full
 
         /**
          * minimum velocity (pixels/millisecond) for opening and closing after a drag
          * @type (number)
          */
-        this.minVelocity = options.minVelocity || 0.5
+        this.minVelocity = this.options.minVelocity
 
         /**
          * maximum time in milliseconds to use when calculating acceleration
          * @type {number}
          */
-        this.timeRecent = options.timeRecent || 100
+        this.timeRecent = this.options.timeRecent
 
         /**
          * automatically open and close the drawer based on acceleration or click
          * @type {boolean}
          */
-        this.auto = typeof options.auto === 'undefined' ? true : options.auto
+        this.auto = this.options.auto
 
         /**
          * number of pixels before move starts after a mousedown or touchstart
          * @type {number}
          */
-        this.threshold = options.threshold || 10
+        this.threshold = this.options.threshold
 
         /**
          * animate time for opening drawer on click
          * @type {number}
          **/
-        this.duration = typeof options.duration === 'undefined' ? 500 : options.duration
+        this.duration = this.options.duration
 
         /**
          * Main drawer element
          * @type {HTMLElement}
          */
-        this.div = html({
-            parent,
+        this.div = utils.html({
+            parent: this.options.parent,
             defaultStyles: {
                 'position': 'fixed',
                 'background': 'white'
             },
-            styles: options.styles
+            styles: this.options.styles
         })
 
         /**
          * use this to add content to the div
          * @type {HTMLElement}
          */
-        this.content = html({ parent: this.div, styles: options.contentStyles, html: options.content })
+        this.content = utils.html({ parent: this.div, styles: options.contentStyles, html: options.content })
 
-        if (options.className)
+        if (this.options.className)
         {
-            this.div.className = options.className
+            this.div.className = this.options.className
         }
 
-        /**
-         * Bar drawer element
-         * @type {HTMLElement}
-         */
-        this.bar = html({
-            parent,
-            styles: {
-                'position': 'fixed',
-                'background': options.barBackground || 'rgba(0,0,0,0.15)',
-                'cursor': ['drag', '-webkit-grab', 'pointer']
-            }
-        })
+        if (!this.options.noInteraction)
+        {
+            /**
+             * Bar drawer element
+             * @type {HTMLElement}
+             */
+            this.bar = utils.html({
+                parent: this.options.parent,
+                styles: {
+                    'position': 'fixed',
+                    'background': this.options.barBackground || 'rgba(0,0,0,0.15)',
+                    'cursor': ['drag', '-webkit-grab', 'pointer']
+                }
+            })
+        }
 
-        this._side = options.side || 'left'
+        this._side = this.options.side
         this.vertical = this.side === 'left' || this.side === 'right'
         this._setSide(true)
-        if (options.open)
+        switch (this.side)
+        {
+            case 'left':
+                this._location = this.div.offsetLeft
+                break
+            case 'right':
+                this._location = this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
+                break
+            case 'top':
+                this._location = this.div.offsetTop
+                break
+            case 'bottom':
+                this._location = window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
+                break
+        }
+        if (this.options.open)
         {
             this.open(true)
         }
@@ -263,7 +284,7 @@ class Drawer
                 this.div.style[this._side] = -this.size + 'px'
                 this.bar.style[this._side] = 0
             }
-            if (this.full)
+            if (this.options.full)
             {
                 this.div.style.top = this.bar.style.top = 0
                 this.div.style.height = this.bar.style.height = '100vh'
@@ -288,7 +309,7 @@ class Drawer
                 this.div.style[this._side] = -this.size + 'px'
                 this.bar.style[this._side] = 0
             }
-            if (this.full)
+            if (this.options.full)
             {
                 this.div.style.left = this.bar.style.left = 0
                 this.div.style.width = this.bar.style.width = '100vw'
@@ -331,7 +352,7 @@ class Drawer
         this.moving = false
         if (this.bar.style.cursor === 'grab' || this.bar.style.cursor === '-webkit-grab')
         {
-            html.styles(this.bar, { 'cursor': ['grabbing', '-webkit-grabbing' ]})
+            utils.styles(this.bar, { 'cursor': ['grabbing', '-webkit-grabbing' ]})
         }
         e.preventDefault()
     }
@@ -398,12 +419,41 @@ class Drawer
                     value = window.innerHeight - e.pageY + this.barSize / 2
                 }
             }
-            value = value > this.size ? this.size : value
-            value = value < 0 ? 0 : value
-            this.div.style[this.side] = value - this.size + 'px'
-            this.bar.style[this.side] = value + 'px'
+            value -= this.size
+            value = value > 0 ? 0 : value
+            value = value < -this.size ? -this.size : value
+            this.location = value
             this.changes.push({ value, time: moment() })
             e.preventDefault()
+        }
+    }
+
+    /**
+     * location of the drawer relative to the edge
+     * @type {number}
+     */
+    get location()
+    {
+        return this._location
+    }
+    set location(value)
+    {
+        if (this._location !== value)
+        {
+            this.div.style[this.side] = value + 'px'
+            this.bar.style[this.side] = value + this.size + 'px'
+            this._location = value
+            if (value === 0)
+            {
+                this.opened = true
+                this.emit('opened', this)
+            }
+            else if (value === -this.size)
+            {
+                this.opened = false
+                this.emit('closed', this)
+            }
+            this.emit('location', value, this)
         }
     }
 
@@ -469,7 +519,7 @@ class Drawer
             }
             if (this.bar.style.cursor === 'grabbing' || this.bar.style.cursor === '-webkit-grabbing')
             {
-                html.styles(this.bar, { 'cursor': ['grab', '-webkit-grab'] })
+                utils.styles(this.bar, { 'cursor': ['grab', '-webkit-grab'] })
             }
             this.down = false
         }
@@ -516,10 +566,12 @@ class Drawer
             {
                 this.div.style[this.side] = 0
                 this.bar.style[this.side] = this.size + 'px'
+                this.emit('opened', this)
             }
             else
             {
                 this._openAnimate()
+                this.emit('opening', this)
             }
             this.opened = true
         }
@@ -527,25 +579,9 @@ class Drawer
 
     _openAnimate(velocity)
     {
-        const end = 0
         const duration = velocity ? Math.abs(0 - this.size) / velocity : this.duration
-        this.easing = { start: this._getCurrent(), end, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        this.easing = { start: this.location, end: 0, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'open' }
         requestAnimationFrame(() => this.update())
-    }
-
-    _getCurrent()
-    {
-        switch (this.side)
-        {
-            case 'left':
-                return this.div.offsetLeft
-            case 'right':
-                return this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
-            case 'top':
-                return this.div.offsetTop
-            case 'bottom':
-                return window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
-        }
     }
 
     /**
@@ -561,10 +597,12 @@ class Drawer
             {
                 this.div.style[this.side] = -this.size + 'px'
                 this.bar.style[this.side] = 0
+                this.emit('closed', this)
             }
             else
             {
                 this._closeAnimate()
+                this.emit('closing', this)
             }
             this.opened = false
         }
@@ -572,9 +610,9 @@ class Drawer
 
     _closeAnimate(velocity)
     {
-        const start = this._getCurrent()
+        const start = this.location
         const duration = velocity ? Math.abs((start - this.size) / velocity) : this.duration
-        this.easing = { start, end: -this.size, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        this.easing = { start, end: -this.size, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'close' }
         requestAnimationFrame(() => this.update())
     }
 
@@ -584,11 +622,17 @@ class Drawer
         {
             let duration = moment().diff(this.easing.time)
             duration = duration > this.easing.duration ? this.easing.duration : duration
-            const value = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
-            this.div.style[this.side] = value + 'px'
-            this.bar.style[this.side] = value + this.size + 'px'
+            this.location = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
             if (duration === this.easing.duration)
             {
+                if (this.easing.type === 'open')
+                {
+                    this.emit('opened', this)
+                }
+                else
+                {
+                    this.emit('closed', this)
+                }
                 this.easing = null
             }
             else
@@ -597,6 +641,57 @@ class Drawer
             }
         }
     }
+
+    /**
+     * defaults for Drawer
+     * @type {object}
+     */
+    static get defaults()
+    {
+        return Drawer._defaults
+    }
+    static set defaults(value)
+    {
+        Drawer._defaults = value
+    }
 }
 
+Drawer.defaults = defaults
+
 module.exports = Drawer
+
+/**
+  * trigger when the drawer is opening from UI click or calling drawer.open()
+  * @event Drawer~opening
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawing is closing from UI click or calling drawer.close()
+  * @event Drawer~closing
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer is fully opened because of UI interaction or drawer.open() finishing
+  * @event Drawer~opened
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer is fully closed because of UI interaction or drawer.close() finishing
+  * @event Drawer~closed
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer's location changes because of UI interaction or drawer.close/open
+  * @event Drawer~location
+  * @type {object}
+  * @property {number} location of drawer
+  * @property {Drawer} drawer
+  */
