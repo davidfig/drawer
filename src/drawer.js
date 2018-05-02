@@ -96,22 +96,26 @@ class Drawer extends Events
             this.div.className = this.options.className
         }
 
+        /**
+         * Bar drawer element
+         * @type {HTMLElement}
+         */
+        this.bar = utils.html({
+            parent: this.options.parent,
+            styles: {
+                'position': 'fixed',
+                'background': this.options.barBackground || 'rgba(0,0,0,0.15)',
+                'cursor': ['drag', '-webkit-grab', 'pointer']
+            }
+        })
         if (!this.options.noInteraction)
         {
-            /**
-             * Bar drawer element
-             * @type {HTMLElement}
-             */
-            this.bar = utils.html({
-                parent: this.options.parent,
-                styles: {
-                    'position': 'fixed',
-                    'background': this.options.barBackground || 'rgba(0,0,0,0.15)',
-                    'cursor': ['drag', '-webkit-grab', 'pointer']
-                }
-            })
+            this._addListeners()
         }
-
+        else
+        {
+            this.bar.style.display = 'none'
+        }
         this._side = this.options.side
         this.vertical = this.side === 'left' || this.side === 'right'
         this._setSide(true)
@@ -134,7 +138,6 @@ class Drawer extends Events
         {
             this.open(true)
         }
-        this._addListeners()
     }
 
     /**

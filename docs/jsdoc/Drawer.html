@@ -45,6 +45,53 @@
     <ul class="list">
     
         
+        <li class="item" data-name="global">
+            <span class="title namespace ">
+                
+                <span class="namespaceTag">
+                    <span class="glyphicon glyphicon-globe"></span>
+                </span>
+                
+                <a href="global.html">Global</a>
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            <span class="subtitle">Typedefs</span>
+            
+                <li class="parent" data-name="PointLike"><a href="global.html#PointLike">PointLike</a></li>
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li class="parent  " data-name="distance"><a href="global.html#distance">distance</a></li>
+            
+                <li class="parent  " data-name="distanceToClosestCorner"><a href="global.html#distanceToClosestCorner">distanceToClosestCorner</a></li>
+            
+                <li class="parent  " data-name="inside"><a href="global.html#inside">inside</a></li>
+            
+                <li class="parent  " data-name="options"><a href="global.html#options">options</a></li>
+            
+                <li class="parent  " data-name="percentage"><a href="global.html#percentage">percentage</a></li>
+            
+                <li class="parent  " data-name="style"><a href="global.html#style">style</a></li>
+            
+                <li class="parent  " data-name="toGlobal"><a href="global.html#toGlobal">toGlobal</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        
         <li class="item" data-name="Drawer">
             <span class="title  ">
                 
@@ -53,6 +100,8 @@
             <ul class="members itemMembers">
             
             <span class="subtitle">Members</span>
+            
+                <li class="parent " data-name="Drawer.defaults"><a href="Drawer.html#.defaults">defaults</a></li>
             
                 <li class="parent " data-name="Drawer#auto"><a href="Drawer.html#auto">auto</a></li>
             
@@ -66,9 +115,9 @@
             
                 <li class="parent " data-name="Drawer#duration"><a href="Drawer.html#duration">duration</a></li>
             
-                <li class="parent " data-name="Drawer#full"><a href="Drawer.html#full">full</a></li>
-            
                 <li class="parent " data-name="Drawer#left"><a href="Drawer.html#left">left</a></li>
+            
+                <li class="parent " data-name="Drawer#location"><a href="Drawer.html#location">location</a></li>
             
                 <li class="parent " data-name="Drawer#minVelocity"><a href="Drawer.html#minVelocity">minVelocity</a></li>
             
@@ -101,6 +150,18 @@
             
             </ul>
             <ul class="events itemMembers">
+            
+            <span class="subtitle">Events</span>
+            
+                <li class="parent" data-name="Drawer~event:closed"><a href="Drawer.html#~event:closed">closed</a></li>
+            
+                <li class="parent" data-name="Drawer~event:closing"><a href="Drawer.html#~event:closing">closing</a></li>
+            
+                <li class="parent" data-name="Drawer~event:location"><a href="Drawer.html#~event:location">location</a></li>
+            
+                <li class="parent" data-name="Drawer~event:opened"><a href="Drawer.html#~event:opened">opened</a></li>
+            
+                <li class="parent" data-name="Drawer~event:opening"><a href="Drawer.html#~event:opening">opening</a></li>
             
             </ul>
         </li>
@@ -147,7 +208,7 @@
 
         
         <div class="tag-source">
-            <a href="drawer.js.html#line28">drawer.js:28</a>
+            <a href="drawer.js.html#line36">drawer.js:36</a>
         </div>
         
     </div>
@@ -475,6 +536,40 @@
                     
                 
                 <p>start with drawer open</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>noInteraction</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+            
+            
+                <td class="default">
+                
+                </td>
+            
+            
+            <td class="description last">
+                
+                    
+                        <span class="optional">optional</span>
+                    
+                    
+                        
+                    
+                
+                <p>open drawer only programmatically</p></td>
         </tr>
 	
 	
@@ -865,6 +960,19 @@
 
 
     
+    <h5>Fires:</h5>
+    <ul>
+        <li>event:opening</li>
+    
+        <li>event:closing</li>
+    
+        <li>event:opened</li>
+    
+        <li>event:closed</li>
+    
+        <li>event:location</li>
+    </ul>
+    
 
     
 
@@ -894,6 +1002,57 @@
         <h3 class="subsection-title">Members</h3>
 
         <dl class="list-members">
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id=".defaults">
+            <a class="share-icon" href="#.defaults"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">Drawer.defaults</span>
+            <span class="type-signature type">object</span>
+            
+            <span class="access-signature">static</span>
+            
+            
+        </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>defaults for Drawer</p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+    
+    
+</dd>
+
+        
             
 <dt>
     <div class="nameContainer">
@@ -1203,10 +1362,10 @@
             
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="full">
-            <a class="share-icon" href="#full"><span class="glyphicon glyphicon-link"></span></a>
-            <span class="">full</span>
-            
+        <h4 class="name" id="left">
+            <a class="share-icon" href="#left"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">left</span>
+            <span class="type-signature type">number</span>
             
             
             
@@ -1219,7 +1378,7 @@
 <dd>
     
     <div class="description">
-        <p>whether the drawer should take up the full width or height</p>
+        <p>change left value of drawer</p>
     </div>
     
     
@@ -1254,9 +1413,9 @@
             
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="left">
-            <a class="share-icon" href="#left"><span class="glyphicon glyphicon-link"></span></a>
-            <span class="">left</span>
+        <h4 class="name" id="location">
+            <a class="share-icon" href="#location"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">location</span>
             <span class="type-signature type">number</span>
             
             
@@ -1270,7 +1429,7 @@
 <dd>
     
     <div class="description">
-        <p>change left value of drawer</p>
+        <p>location of the drawer relative to the edge</p>
     </div>
     
     
@@ -1580,7 +1739,7 @@
 
         
         <div class="tag-source">
-            <a href="drawer.js.html#line555">drawer.js:555</a>
+            <a href="drawer.js.html#line594">drawer.js:594</a>
         </div>
         
     </div>
@@ -1708,7 +1867,7 @@
 
         
         <div class="tag-source">
-            <a href="drawer.js.html#line510">drawer.js:510</a>
+            <a href="drawer.js.html#line563">drawer.js:563</a>
         </div>
         
     </div>
@@ -1836,7 +1995,7 @@
 
         
         <div class="tag-source">
-            <a href="drawer.js.html#line494">drawer.js:494</a>
+            <a href="drawer.js.html#line547">drawer.js:547</a>
         </div>
         
     </div>
@@ -1964,7 +2123,7 @@
 
         
         <div class="tag-source">
-            <a href="drawer.js.html#line122">drawer.js:122</a>
+            <a href="drawer.js.html#line146">drawer.js:146</a>
         </div>
         
     </div>
@@ -2030,6 +2189,718 @@
     
 
     
+        <h3 class="subsection-title">Events</h3>
+
+        <dl class="list-events">
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="~event:closed">
+            <a class="share-icon" href="#~event:closed"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">
+                closed
+            </span>
+            
+            
+            
+            
+            
+        </h4>
+
+        
+        <div class="tag-source">
+            <a href="drawer.js.html#line687">drawer.js:687</a>
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>trigger when drawer is fully closed because of UI interaction or drawer.close() finishing</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+        <h5 class="subsection-title">Properties:</h5>
+
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>drawer</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Drawer.html">Drawer</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="~event:closing">
+            <a class="share-icon" href="#~event:closing"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">
+                closing
+            </span>
+            
+            
+            
+            
+            
+        </h4>
+
+        
+        <div class="tag-source">
+            <a href="drawer.js.html#line673">drawer.js:673</a>
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>trigger when drawing is closing from UI click or calling drawer.close()</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+        <h5 class="subsection-title">Properties:</h5>
+
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>drawer</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Drawer.html">Drawer</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="~event:location">
+            <a class="share-icon" href="#~event:location"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">
+                location
+            </span>
+            
+            
+            
+            
+            
+        </h4>
+
+        
+        <div class="tag-source">
+            <a href="drawer.js.html#line694">drawer.js:694</a>
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>trigger when drawer's location changes because of UI interaction or drawer.close/open</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+        <h5 class="subsection-title">Properties:</h5>
+
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>location</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"><p>of drawer</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>drawer</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Drawer.html">Drawer</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="~event:opened">
+            <a class="share-icon" href="#~event:opened"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">
+                opened
+            </span>
+            
+            
+            
+            
+            
+        </h4>
+
+        
+        <div class="tag-source">
+            <a href="drawer.js.html#line680">drawer.js:680</a>
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>trigger when drawer is fully opened because of UI interaction or drawer.open() finishing</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+        <h5 class="subsection-title">Properties:</h5>
+
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>drawer</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Drawer.html">Drawer</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="~event:opening">
+            <a class="share-icon" href="#~event:opening"><span class="glyphicon glyphicon-link"></span></a>
+            <span class="">
+                opening
+            </span>
+            
+            
+            
+            
+            
+        </h4>
+
+        
+        <div class="tag-source">
+            <a href="drawer.js.html#line666">drawer.js:666</a>
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>trigger when the drawer is opening from UI click or calling drawer.open()</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+        <h5 class="subsection-title">Properties:</h5>
+
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>drawer</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Drawer.html">Drawer</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        </dl>
+    
 </article>
 
 </section>
@@ -2042,7 +2913,7 @@
 
         <footer class="content-size">
             <div class="footer">
-                Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Apr 29 2018 18:25:35 GMT+0800 (DST)
+                Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed May 02 2018 18:19:29 GMT+0800 (DST)
             </div>
         </footer>
     </div>

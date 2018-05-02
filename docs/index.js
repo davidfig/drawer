@@ -92,7 +92,7 @@ window.onload = () => {
     highlight()
     test()
 }
-},{"../src/drawer":185,"./highlight":2,"clicked":3}],2:[function(require,module,exports){
+},{"../src/drawer":186,"./highlight":2,"clicked":3}],2:[function(require,module,exports){
 module.exports = function ()
 {
     var client = new XMLHttpRequest()
@@ -22032,12 +22032,30 @@ module.exports = function(hljs) {
 }).call(this);
 
 },{}],185:[function(require,module,exports){
+module.exports = {
+    parent: document.body,
+    auto: true,
+    side: 'left',
+    barSize: 20,
+    full: true,
+    styles: {
+    },
+    barBackground: 'rgba(0,0,0,0.25)',
+    ease: 'easeInOutSine',
+    duration: 500,
+    threshold: 10,
+    timeRecent: 100,
+    minVelocty: 0.5
+}
+},{}],186:[function(require,module,exports){
 const Penner = require('penner')
 const moment = require('moment')
+const Events = require('eventemitter3')
 
-const html = require('./html')
+const utils = require('./utils')
+let defaults = require('./defaults')
 
-class Drawer
+class Drawer extends Events
 {
     /**
      * @param {object} [options]
@@ -22048,6 +22066,7 @@ class Drawer
      * @param {number} [options.barSize=20] size (in pixels) of drag bar
      * @param {boolean} [options.full=true] whether the drawer should take up the full width or height
      * @param {boolean} [options.open] start with drawer open
+     * @param {boolean} [options.noInteraction] open drawer only programmatically
      * @param {object} [options.styles] styles for div
      * @param {string} [options.className] class name for div
      * @param {string} [options.barBackground=rgba(0,0,0,0.25)] background setting for drag bar
@@ -22058,96 +22077,117 @@ class Drawer
      * @param {number} [options.minVelocty=0.5] minimum velocity (pixels/millisecond) for opening and closing after a drag
      * @param {string} [options.content] HTML content for the drawer
      * @param {object} [options.contentStyles] styles for content of drawer
+     * @fires opening
+     * @fires closing
+     * @fires opened
+     * @fires closed
+     * @fires location
      */
     constructor(options)
     {
-        options = options || {}
-        const parent = options.parent || document.body
-        this._size = options.size
-        this._barSize = options.barSize || 20
-        this.ease = options.ease ? (typeof options.ease === 'function' ? options.ease : Penner[options.ease]) : Penner.linear
+        super()
+        this.options = utils.options(options, Drawer._defaults)
+        this._size = this.options.size
+        this._barSize = this.options.barSize
+        this.ease = this.options.ease ? (typeof this.options.ease === 'function' ? this.options.ease : Penner[this.options.ease]) : Penner['easeInOutSine']
         this.all = ['left', 'right', 'top', 'bottom']
-
-        /**
-         * whether the drawer should take up the full width or height
-         */
-        this.full = options.full
 
         /**
          * minimum velocity (pixels/millisecond) for opening and closing after a drag
          * @type (number)
          */
-        this.minVelocity = options.minVelocity || 0.5
+        this.minVelocity = this.options.minVelocity
 
         /**
          * maximum time in milliseconds to use when calculating acceleration
          * @type {number}
          */
-        this.timeRecent = options.timeRecent || 100
+        this.timeRecent = this.options.timeRecent
 
         /**
          * automatically open and close the drawer based on acceleration or click
          * @type {boolean}
          */
-        this.auto = typeof options.auto === 'undefined' ? true : options.auto
+        this.auto = this.options.auto
 
         /**
          * number of pixels before move starts after a mousedown or touchstart
          * @type {number}
          */
-        this.threshold = options.threshold || 10
+        this.threshold = this.options.threshold
 
         /**
          * animate time for opening drawer on click
          * @type {number}
          **/
-        this.duration = typeof options.duration === 'undefined' ? 500 : options.duration
+        this.duration = this.options.duration
 
         /**
          * Main drawer element
          * @type {HTMLElement}
          */
-        this.div = html({
-            parent,
+        this.div = utils.html({
+            parent: this.options.parent,
             defaultStyles: {
                 'position': 'fixed',
                 'background': 'white'
             },
-            styles: options.styles
+            styles: this.options.styles
         })
 
         /**
          * use this to add content to the div
          * @type {HTMLElement}
          */
-        this.content = html({ parent: this.div, styles: options.contentStyles, html: options.content })
+        this.content = utils.html({ parent: this.div, styles: options.contentStyles, html: options.content })
 
-        if (options.className)
+        if (this.options.className)
         {
-            this.div.className = options.className
+            this.div.className = this.options.className
         }
 
         /**
          * Bar drawer element
          * @type {HTMLElement}
          */
-        this.bar = html({
-            parent,
+        this.bar = utils.html({
+            parent: this.options.parent,
             styles: {
                 'position': 'fixed',
-                'background': options.barBackground || 'rgba(0,0,0,0.15)',
+                'background': this.options.barBackground || 'rgba(0,0,0,0.15)',
                 'cursor': ['drag', '-webkit-grab', 'pointer']
             }
         })
-
-        this._side = options.side || 'left'
+        if (!this.options.noInteraction)
+        {
+            this._addListeners()
+        }
+        else
+        {
+            this.bar.style.display = 'none'
+        }
+        this._side = this.options.side
         this.vertical = this.side === 'left' || this.side === 'right'
         this._setSide(true)
-        if (options.open)
+        switch (this.side)
+        {
+            case 'left':
+                this._location = this.div.offsetLeft
+                break
+            case 'right':
+                this._location = this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
+                break
+            case 'top':
+                this._location = this.div.offsetTop
+                break
+            case 'bottom':
+                this._location = window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
+                break
+        }
+        if (this.options.open)
         {
             this.open(true)
         }
-        this._addListeners()
     }
 
     /**
@@ -22297,7 +22337,7 @@ class Drawer
                 this.div.style[this._side] = -this.size + 'px'
                 this.bar.style[this._side] = 0
             }
-            if (this.full)
+            if (this.options.full)
             {
                 this.div.style.top = this.bar.style.top = 0
                 this.div.style.height = this.bar.style.height = '100vh'
@@ -22322,7 +22362,7 @@ class Drawer
                 this.div.style[this._side] = -this.size + 'px'
                 this.bar.style[this._side] = 0
             }
-            if (this.full)
+            if (this.options.full)
             {
                 this.div.style.left = this.bar.style.left = 0
                 this.div.style.width = this.bar.style.width = '100vw'
@@ -22365,7 +22405,7 @@ class Drawer
         this.moving = false
         if (this.bar.style.cursor === 'grab' || this.bar.style.cursor === '-webkit-grab')
         {
-            html.styles(this.bar, { 'cursor': ['grabbing', '-webkit-grabbing' ]})
+            utils.styles(this.bar, { 'cursor': ['grabbing', '-webkit-grabbing' ]})
         }
         e.preventDefault()
     }
@@ -22432,12 +22472,41 @@ class Drawer
                     value = window.innerHeight - e.pageY + this.barSize / 2
                 }
             }
-            value = value > this.size ? this.size : value
-            value = value < 0 ? 0 : value
-            this.div.style[this.side] = value - this.size + 'px'
-            this.bar.style[this.side] = value + 'px'
+            value -= this.size
+            value = value > 0 ? 0 : value
+            value = value < -this.size ? -this.size : value
+            this.location = value
             this.changes.push({ value, time: moment() })
             e.preventDefault()
+        }
+    }
+
+    /**
+     * location of the drawer relative to the edge
+     * @type {number}
+     */
+    get location()
+    {
+        return this._location
+    }
+    set location(value)
+    {
+        if (this._location !== value)
+        {
+            this.div.style[this.side] = value + 'px'
+            this.bar.style[this.side] = value + this.size + 'px'
+            this._location = value
+            if (value === 0)
+            {
+                this.opened = true
+                this.emit('opened', this)
+            }
+            else if (value === -this.size)
+            {
+                this.opened = false
+                this.emit('closed', this)
+            }
+            this.emit('location', value, this)
         }
     }
 
@@ -22503,7 +22572,7 @@ class Drawer
             }
             if (this.bar.style.cursor === 'grabbing' || this.bar.style.cursor === '-webkit-grabbing')
             {
-                html.styles(this.bar, { 'cursor': ['grab', '-webkit-grab'] })
+                utils.styles(this.bar, { 'cursor': ['grab', '-webkit-grab'] })
             }
             this.down = false
         }
@@ -22550,10 +22619,12 @@ class Drawer
             {
                 this.div.style[this.side] = 0
                 this.bar.style[this.side] = this.size + 'px'
+                this.emit('opened', this)
             }
             else
             {
                 this._openAnimate()
+                this.emit('opening', this)
             }
             this.opened = true
         }
@@ -22561,25 +22632,9 @@ class Drawer
 
     _openAnimate(velocity)
     {
-        const end = 0
         const duration = velocity ? Math.abs(0 - this.size) / velocity : this.duration
-        this.easing = { start: this._getCurrent(), end, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        this.easing = { start: this.location, end: 0, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'open' }
         requestAnimationFrame(() => this.update())
-    }
-
-    _getCurrent()
-    {
-        switch (this.side)
-        {
-            case 'left':
-                return this.div.offsetLeft
-            case 'right':
-                return this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
-            case 'top':
-                return this.div.offsetTop
-            case 'bottom':
-                return window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
-        }
     }
 
     /**
@@ -22595,10 +22650,12 @@ class Drawer
             {
                 this.div.style[this.side] = -this.size + 'px'
                 this.bar.style[this.side] = 0
+                this.emit('closed', this)
             }
             else
             {
                 this._closeAnimate()
+                this.emit('closing', this)
             }
             this.opened = false
         }
@@ -22606,9 +22663,9 @@ class Drawer
 
     _closeAnimate(velocity)
     {
-        const start = this._getCurrent()
+        const start = this.location
         const duration = velocity ? Math.abs((start - this.size) / velocity) : this.duration
-        this.easing = { start, end: -this.size, time: moment(), ease: velocity ? Penner.linear : this.ease, duration }
+        this.easing = { start, end: -this.size, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'close' }
         requestAnimationFrame(() => this.update())
     }
 
@@ -22618,11 +22675,17 @@ class Drawer
         {
             let duration = moment().diff(this.easing.time)
             duration = duration > this.easing.duration ? this.easing.duration : duration
-            const value = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
-            this.div.style[this.side] = value + 'px'
-            this.bar.style[this.side] = value + this.size + 'px'
+            this.location = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
             if (duration === this.easing.duration)
             {
+                if (this.easing.type === 'open')
+                {
+                    this.emit('opened', this)
+                }
+                else
+                {
+                    this.emit('closed', this)
+                }
                 this.easing = null
             }
             else
@@ -22631,10 +22694,211 @@ class Drawer
             }
         }
     }
+
+    /**
+     * defaults for Drawer
+     * @type {object}
+     */
+    static get defaults()
+    {
+        return Drawer._defaults
+    }
+    static set defaults(value)
+    {
+        Drawer._defaults = value
+    }
 }
 
+Drawer.defaults = defaults
+
 module.exports = Drawer
-},{"./html":186,"moment":183,"penner":184}],186:[function(require,module,exports){
+
+/**
+  * trigger when the drawer is opening from UI click or calling drawer.open()
+  * @event Drawer~opening
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawing is closing from UI click or calling drawer.close()
+  * @event Drawer~closing
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer is fully opened because of UI interaction or drawer.open() finishing
+  * @event Drawer~opened
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer is fully closed because of UI interaction or drawer.close() finishing
+  * @event Drawer~closed
+  * @type {object}
+  * @property {Drawer} drawer
+  */
+
+/**
+  * trigger when drawer's location changes because of UI interaction or drawer.close/open
+  * @event Drawer~location
+  * @type {object}
+  * @property {number} location of drawer
+  * @property {Drawer} drawer
+  */
+},{"./defaults":185,"./utils":187,"eventemitter3":188,"moment":183,"penner":184}],187:[function(require,module,exports){
+/**
+ * measure distance between two points
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ */
+function distance(x1, y1, x2, y2)
+{
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+}
+
+/**
+ * find closest distance from UIEvent to a corner of an element
+ * @param {number} x
+ * @param {number} y
+ * @param {HTMLElement} element
+ */
+function distanceToClosestCorner(x, y, element)
+{
+    const pos = toGlobal(element)
+    const topLeft = distance(x, y, pos.x, pos.y)
+    const topRight = distance(x, y, pos.x + element.offsetWidth, pos.y)
+    const bottomLeft = distance(x, y, pos.x, pos.y + element.offsetHeight)
+    const bottomRight = distance(x, y, pos.x + element.offsetWidth, pos.y + element.offsetHeight)
+    return Math.min(topLeft, topRight, bottomLeft, bottomRight)
+}
+
+/**
+ * determine whether the mouse is inside an element
+ * @param {HTMLElement} dragging
+ * @param {HTMLElement} element
+ */
+function inside(x, y, element)
+{
+    const pos = toGlobal(element)
+    const x1 = pos.x
+    const y1 = pos.y
+    const w1 = element.offsetWidth
+    const h1 = element.offsetHeight
+    return x >= x1 && x <= x1 + w1 && y >= y1 && y <= y1 + h1}
+
+/**
+ * determines global location of a div
+ * from https://stackoverflow.com/a/26230989/1955997
+ * @param {HTMLElement} e
+ * @returns {PointLike}
+ */
+function toGlobal(e)
+{
+    const box = e.getBoundingClientRect()
+
+    const body = document.body
+    const docEl = document.documentElement
+
+    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
+    const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+
+    const clientTop = docEl.clientTop || body.clientTop || 0
+    const clientLeft = docEl.clientLeft || body.clientLeft || 0
+
+    const top = box.top + scrollTop - clientTop
+    const left = box.left + scrollLeft - clientLeft
+
+    return { y: Math.round(top), x: Math.round(left) }
+}
+
+/**
+ * @typedef {object} PointLike
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * combines options and default options
+ * @param {object} options
+ * @param {object} defaults
+ * @returns {object} options+defaults
+ */
+function options(options, defaults)
+{
+    options = options || {}
+    for (let option in defaults)
+    {
+        options[option] = typeof options[option] !== 'undefined' ? options[option] : defaults[option]
+    }
+    return options
+}
+
+/**
+ * set a style on an element
+ * @param {HTMLElement} element
+ * @param {string} style
+ * @param {(string|string[])} value - single value or list of possible values (test each one in order to see if it works)
+ */
+function style(element, style, value)
+{
+    if (Array.isArray(value))
+    {
+        for (let entry of value)
+        {
+            element.style[style] = entry
+            if (element.style[style] === entry)
+            {
+                break
+            }
+        }
+    }
+    else
+    {
+        element.style[style] = value
+    }
+}
+
+/**
+ * calculate percentage of overlap between two boxes
+ * from https://stackoverflow.com/a/21220004/1955997
+ * @param {number} xa1
+ * @param {number} ya1
+ * @param {number} xa2
+ * @param {number} xa2
+ * @param {number} xb1
+ * @param {number} yb1
+ * @param {number} xb2
+ * @param {number} yb2
+ */
+function percentage(xa1, ya1, xa2, ya2, xb1, yb1, xb2, yb2)
+{
+    const sa = (xa2 - xa1) * (ya2 - ya1)
+    const sb = (xb2 - xb1) * (yb2 - yb1)
+    const si = Math.max(0, Math.min(xa2, xb2) - Math.max(xa1, xb1)) * Math.max(0, Math.min(ya2, yb2) - Math.max(ya1, yb1))
+    const union = sa + sb - si
+    if (union !== 0)
+    {
+        return si / union
+    }
+    else
+    {
+        return 0
+    }
+}
+
+function removeChildren(element)
+{
+    while (element.firstChild)
+    {
+        element.firstChild.remove()
+    }
+}
+
 function html(options)
 {
     options = options || {}
@@ -22645,11 +22909,11 @@ function html(options)
     }
     if (options.defaultStyles)
     {
-        html.styles(object, options.defaultStyles)
+        styles(object, options.defaultStyles)
     }
     if (options.styles)
     {
-        html.styles(object, options.styles)
+        styles(object, options.styles)
     }
     if (options.html)
     {
@@ -22662,7 +22926,7 @@ function html(options)
     return object
 }
 
-html.styles = function (object, styles)
+function styles(object, styles)
 {
     for (let style in styles)
     {
@@ -22684,30 +22948,369 @@ html.styles = function (object, styles)
     }
 }
 
-/**
- * determines global location of a div
- * from https://stackoverflow.com/a/26230989/1955997
- * @param {HTMLElement} e
- * @returns {PointLike}
- */
-html.toGlobal = function(e)
+function getChildIndex(parent, child)
 {
-    const box = e.getBoundingClientRect()
-
-    const body = document.body
-    const docEl = document.documentElement
-
-    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
-    const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
-
-    const clientTop = docEl.clientTop || body.clientTop || 0
-    const clientLeft = docEl.clientLeft || body.clientLeft || 0
-
-    const top = box.top + scrollTop - clientTop
-    const left = box.left + scrollLeft - clientLeft
-
-    return { y: Math.round(top), x: Math.round(left) }
+    let index = 0
+    for (let entry of parent.children)
+    {
+        if (entry === child)
+        {
+            return index
+        }
+        index++
+    }
+    return -1
 }
 
-module.exports = html
+module.exports = {
+    removeChildren,
+    distance,
+    distanceToClosestCorner,
+    inside,
+    toGlobal,
+    options,
+    style,
+    percentage,
+    html,
+    styles,
+    getChildIndex
+}
+},{}],188:[function(require,module,exports){
+'use strict';
+
+var has = Object.prototype.hasOwnProperty
+  , prefix = '~';
+
+/**
+ * Constructor to create a storage for our `EE` objects.
+ * An `Events` instance is a plain object whose properties are event names.
+ *
+ * @constructor
+ * @private
+ */
+function Events() {}
+
+//
+// We try to not inherit from `Object.prototype`. In some engines creating an
+// instance in this way is faster than calling `Object.create(null)` directly.
+// If `Object.create(null)` is not supported we prefix the event names with a
+// character to make sure that the built-in object properties are not
+// overridden or used as an attack vector.
+//
+if (Object.create) {
+  Events.prototype = Object.create(null);
+
+  //
+  // This hack is needed because the `__proto__` property is still inherited in
+  // some old browsers like Android 4, iPhone 5.1, Opera 11 and Safari 5.
+  //
+  if (!new Events().__proto__) prefix = false;
+}
+
+/**
+ * Representation of a single event listener.
+ *
+ * @param {Function} fn The listener function.
+ * @param {*} context The context to invoke the listener with.
+ * @param {Boolean} [once=false] Specify if the listener is a one-time listener.
+ * @constructor
+ * @private
+ */
+function EE(fn, context, once) {
+  this.fn = fn;
+  this.context = context;
+  this.once = once || false;
+}
+
+/**
+ * Add a listener for a given event.
+ *
+ * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+ * @param {(String|Symbol)} event The event name.
+ * @param {Function} fn The listener function.
+ * @param {*} context The context to invoke the listener with.
+ * @param {Boolean} once Specify if the listener is a one-time listener.
+ * @returns {EventEmitter}
+ * @private
+ */
+function addListener(emitter, event, fn, context, once) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('The listener must be a function');
+  }
+
+  var listener = new EE(fn, context || emitter, once)
+    , evt = prefix ? prefix + event : event;
+
+  if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;
+  else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);
+  else emitter._events[evt] = [emitter._events[evt], listener];
+
+  return emitter;
+}
+
+/**
+ * Clear event by name.
+ *
+ * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+ * @param {(String|Symbol)} evt The Event name.
+ * @private
+ */
+function clearEvent(emitter, evt) {
+  if (--emitter._eventsCount === 0) emitter._events = new Events();
+  else delete emitter._events[evt];
+}
+
+/**
+ * Minimal `EventEmitter` interface that is molded against the Node.js
+ * `EventEmitter` interface.
+ *
+ * @constructor
+ * @public
+ */
+function EventEmitter() {
+  this._events = new Events();
+  this._eventsCount = 0;
+}
+
+/**
+ * Return an array listing the events for which the emitter has registered
+ * listeners.
+ *
+ * @returns {Array}
+ * @public
+ */
+EventEmitter.prototype.eventNames = function eventNames() {
+  var names = []
+    , events
+    , name;
+
+  if (this._eventsCount === 0) return names;
+
+  for (name in (events = this._events)) {
+    if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+  }
+
+  if (Object.getOwnPropertySymbols) {
+    return names.concat(Object.getOwnPropertySymbols(events));
+  }
+
+  return names;
+};
+
+/**
+ * Return the listeners registered for a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @returns {Array} The registered listeners.
+ * @public
+ */
+EventEmitter.prototype.listeners = function listeners(event) {
+  var evt = prefix ? prefix + event : event
+    , handlers = this._events[evt];
+
+  if (!handlers) return [];
+  if (handlers.fn) return [handlers.fn];
+
+  for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
+    ee[i] = handlers[i].fn;
+  }
+
+  return ee;
+};
+
+/**
+ * Return the number of listeners listening to a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @returns {Number} The number of listeners.
+ * @public
+ */
+EventEmitter.prototype.listenerCount = function listenerCount(event) {
+  var evt = prefix ? prefix + event : event
+    , listeners = this._events[evt];
+
+  if (!listeners) return 0;
+  if (listeners.fn) return 1;
+  return listeners.length;
+};
+
+/**
+ * Calls each of the listeners registered for a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @returns {Boolean} `true` if the event had listeners, else `false`.
+ * @public
+ */
+EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+  var evt = prefix ? prefix + event : event;
+
+  if (!this._events[evt]) return false;
+
+  var listeners = this._events[evt]
+    , len = arguments.length
+    , args
+    , i;
+
+  if (listeners.fn) {
+    if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
+
+    switch (len) {
+      case 1: return listeners.fn.call(listeners.context), true;
+      case 2: return listeners.fn.call(listeners.context, a1), true;
+      case 3: return listeners.fn.call(listeners.context, a1, a2), true;
+      case 4: return listeners.fn.call(listeners.context, a1, a2, a3), true;
+      case 5: return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+      case 6: return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+    }
+
+    for (i = 1, args = new Array(len -1); i < len; i++) {
+      args[i - 1] = arguments[i];
+    }
+
+    listeners.fn.apply(listeners.context, args);
+  } else {
+    var length = listeners.length
+      , j;
+
+    for (i = 0; i < length; i++) {
+      if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
+
+      switch (len) {
+        case 1: listeners[i].fn.call(listeners[i].context); break;
+        case 2: listeners[i].fn.call(listeners[i].context, a1); break;
+        case 3: listeners[i].fn.call(listeners[i].context, a1, a2); break;
+        case 4: listeners[i].fn.call(listeners[i].context, a1, a2, a3); break;
+        default:
+          if (!args) for (j = 1, args = new Array(len -1); j < len; j++) {
+            args[j - 1] = arguments[j];
+          }
+
+          listeners[i].fn.apply(listeners[i].context, args);
+      }
+    }
+  }
+
+  return true;
+};
+
+/**
+ * Add a listener for a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @param {Function} fn The listener function.
+ * @param {*} [context=this] The context to invoke the listener with.
+ * @returns {EventEmitter} `this`.
+ * @public
+ */
+EventEmitter.prototype.on = function on(event, fn, context) {
+  return addListener(this, event, fn, context, false);
+};
+
+/**
+ * Add a one-time listener for a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @param {Function} fn The listener function.
+ * @param {*} [context=this] The context to invoke the listener with.
+ * @returns {EventEmitter} `this`.
+ * @public
+ */
+EventEmitter.prototype.once = function once(event, fn, context) {
+  return addListener(this, event, fn, context, true);
+};
+
+/**
+ * Remove the listeners of a given event.
+ *
+ * @param {(String|Symbol)} event The event name.
+ * @param {Function} fn Only remove the listeners that match this function.
+ * @param {*} context Only remove the listeners that have this context.
+ * @param {Boolean} once Only remove one-time listeners.
+ * @returns {EventEmitter} `this`.
+ * @public
+ */
+EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
+  var evt = prefix ? prefix + event : event;
+
+  if (!this._events[evt]) return this;
+  if (!fn) {
+    clearEvent(this, evt);
+    return this;
+  }
+
+  var listeners = this._events[evt];
+
+  if (listeners.fn) {
+    if (
+      listeners.fn === fn &&
+      (!once || listeners.once) &&
+      (!context || listeners.context === context)
+    ) {
+      clearEvent(this, evt);
+    }
+  } else {
+    for (var i = 0, events = [], length = listeners.length; i < length; i++) {
+      if (
+        listeners[i].fn !== fn ||
+        (once && !listeners[i].once) ||
+        (context && listeners[i].context !== context)
+      ) {
+        events.push(listeners[i]);
+      }
+    }
+
+    //
+    // Reset the array, or remove it completely if we have no more listeners.
+    //
+    if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
+    else clearEvent(this, evt);
+  }
+
+  return this;
+};
+
+/**
+ * Remove all listeners, or those of the specified event.
+ *
+ * @param {(String|Symbol)} [event] The event name.
+ * @returns {EventEmitter} `this`.
+ * @public
+ */
+EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+  var evt;
+
+  if (event) {
+    evt = prefix ? prefix + event : event;
+    if (this._events[evt]) clearEvent(this, evt);
+  } else {
+    this._events = new Events();
+    this._eventsCount = 0;
+  }
+
+  return this;
+};
+
+//
+// Alias methods names because people roll like that.
+//
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+
+//
+// Expose the prefix.
+//
+EventEmitter.prefixed = prefix;
+
+//
+// Allow `EventEmitter` to be imported as module namespace.
+//
+EventEmitter.EventEmitter = EventEmitter;
+
+//
+// Expose the module.
+//
+if ('undefined' !== typeof module) {
+  module.exports = EventEmitter;
+}
+
 },{}]},{},[1]);
