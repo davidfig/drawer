@@ -22506,7 +22506,7 @@ class Drawer extends Events
                 this.opened = false
                 this.emit('closed', this)
             }
-            this.emit('location', value, this)
+            this.emit('location', value + this.size, this)
         }
     }
 
