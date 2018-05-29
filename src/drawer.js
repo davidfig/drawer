@@ -120,24 +120,14 @@ class Drawer extends Events
         this._side = this.options.side
         this.vertical = this.side === 'left' || this.side === 'right'
         this._setSide(true)
-        switch (this.side)
-        {
-            case 'left':
-                this._location = this.div.offsetLeft
-                break
-            case 'right':
-                this._location = this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
-                break
-            case 'top':
-                this._location = this.div.offsetTop
-                break
-            case 'bottom':
-                this._location = window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
-                break
-        }
+        this.location = 0
         if (this.options.open)
         {
             this.open(true)
+        }
+        else
+        {
+            this.close(true)
         }
     }
 
@@ -583,7 +573,7 @@ class Drawer extends Events
 
     _openAnimate(velocity)
     {
-        const duration = velocity ? Math.abs(0 - this.size) / velocity : this.duration
+        const duration = velocity ? Math.abs((0 - this.size) / velocity) : this.duration
         this.easing = { start: this.location, end: 0, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'open' }
         requestAnimationFrame(() => this.update())
     }
@@ -599,8 +589,7 @@ class Drawer extends Events
             this.easing = null
             if (noAnimate)
             {
-                this.div.style[this.side] = -this.size + 'px'
-                this.bar.style[this.side] = 0
+                this.location = -this.size
                 this.emit('closed', this)
             }
             else
@@ -627,7 +616,6 @@ class Drawer extends Events
             let duration = moment().diff(this.easing.time)
             duration = duration > this.easing.duration ? this.easing.duration : duration
             this.location = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
-console.log(this.location)
             if (duration === this.easing.duration)
             {
                 if (this.easing.type === 'open')
