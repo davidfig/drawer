@@ -1,4 +1,4 @@
-(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const clicked = require('clicked')
 
 const highlight = require('./highlight')
@@ -55,6 +55,7 @@ function test()
     // top
     const drawer = new Drawer({
         size: 75,
+        full: false,
         open: true,
         styles: {
             left: '200px',
@@ -22033,7 +22034,6 @@ module.exports = function(hljs) {
 
 },{}],185:[function(require,module,exports){
 module.exports = {
-    parent: document.body,
     auto: true,
     side: 'left',
     barSize: 20,
@@ -22087,6 +22087,7 @@ class Drawer extends Events
     {
         super()
         this.options = utils.options(options, Drawer._defaults)
+        this.options.parent = this.options.parent || document.body
         this._size = this.options.size
         this._barSize = this.options.barSize
         this.ease = this.options.ease ? (typeof this.options.ease === 'function' ? this.options.ease : Penner[this.options.ease]) : Penner['easeInOutSine']
@@ -22169,24 +22170,14 @@ class Drawer extends Events
         this._side = this.options.side
         this.vertical = this.side === 'left' || this.side === 'right'
         this._setSide(true)
-        switch (this.side)
-        {
-            case 'left':
-                this._location = this.div.offsetLeft
-                break
-            case 'right':
-                this._location = this.div.parentNode.offsetWidth - (this.div.offsetLeft + this.div.offsetWidth)
-                break
-            case 'top':
-                this._location = this.div.offsetTop
-                break
-            case 'bottom':
-                this._location = window.innerHeight - (this.div.offsetTop + this.div.offsetHeight)
-                break
-        }
+        this.location = 0
         if (this.options.open)
         {
             this.open(true)
+        }
+        else
+        {
+            this.close(true)
         }
     }
 
@@ -22632,7 +22623,7 @@ class Drawer extends Events
 
     _openAnimate(velocity)
     {
-        const duration = velocity ? Math.abs(0 - this.size) / velocity : this.duration
+        const duration = velocity ? Math.abs((0 - this.size) / velocity) : this.duration
         this.easing = { start: this.location, end: 0, time: moment(), ease: velocity ? Penner.linear : this.ease, duration, type: 'open' }
         requestAnimationFrame(() => this.update())
     }
@@ -22648,8 +22639,7 @@ class Drawer extends Events
             this.easing = null
             if (noAnimate)
             {
-                this.div.style[this.side] = -this.size + 'px'
-                this.bar.style[this.side] = 0
+                this.location = -this.size
                 this.emit('closed', this)
             }
             else
