@@ -37,6 +37,7 @@ class Drawer extends Events
     {
         super()
         this.options = utils.options(options, Drawer._defaults)
+        this.options.parent = this.options.parent || document.body
         this._size = this.options.size
         this._barSize = this.options.barSize
         this.ease = this.options.ease ? (typeof this.options.ease === 'function' ? this.options.ease : Penner[this.options.ease]) : Penner['easeInOutSine']
@@ -626,6 +627,7 @@ class Drawer extends Events
             let duration = moment().diff(this.easing.time)
             duration = duration > this.easing.duration ? this.easing.duration : duration
             this.location = this.ease(duration, this.easing.start, this.easing.end - this.easing.start, this.easing.duration)
+console.log(this.location)
             if (duration === this.easing.duration)
             {
                 if (this.easing.type === 'open')

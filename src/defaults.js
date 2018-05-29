@@ -1,5 +1,4 @@
 module.exports = {
-    parent: document.body,
     auto: true,
     side: 'left',
     barSize: 20,

@@ -54,6 +54,7 @@ function test()
     // top
     const drawer = new Drawer({
         size: 75,
+        full: false,
         open: true,
         styles: {
             left: '200px',
