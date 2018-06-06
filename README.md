@@ -12,7 +12,7 @@ I needed a clean drawer for one of my projects.
 
 ## Installation
 
-    npm i drawer
+    npm i yy-drawer
 
 ## Simple Example
 ```js

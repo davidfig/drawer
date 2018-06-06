@@ -22140,7 +22140,7 @@ class Drawer extends Events
          * use this to add content to the div
          * @type {HTMLElement}
          */
-        this.content = utils.html({ parent: this.div, styles: options.contentStyles, html: options.content })
+        this.content = utils.html({ parent: this.div, styles: this.options.contentStyles, html: this.options.content })
 
         if (this.options.className)
         {
@@ -22184,7 +22184,7 @@ class Drawer extends Events
     /**
      * call this when the contents of the drawer are updated
      */
-    update()
+    updateContents()
     {
         this._setSide(true)
     }

@@ -1,6 +1,6 @@
 {
   "name": "yy-drawer",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A vanilla-javascript drawer UI component",
   "main": "src/drawer.js",
   "scripts": {
