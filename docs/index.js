@@ -22520,10 +22520,15 @@ class Drawer extends Events
     }
 
     /**
-     * call this when the contents of the drawer are updated
+     * call this to update the contents or after the contents of the drawer are updated (handles sizing)
+     * @param {string} [content]
      */
-    updateContents()
+    updateContents(content)
     {
+        if (content)
+        {
+            this.content.innerHTML = content
+        }
         this._setSide(true)
     }
 
