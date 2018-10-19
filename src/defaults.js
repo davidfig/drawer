@@ -10,5 +10,6 @@ module.exports = {
     duration: 500,
     threshold: 10,
     timeRecent: 100,
-    minVelocty: 0.5
+    minVelocty: 0.5,
+    closeOnEscape: true
 }

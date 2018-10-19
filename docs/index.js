@@ -22383,7 +22383,8 @@ module.exports = {
     duration: 500,
     threshold: 10,
     timeRecent: 100,
-    minVelocty: 0.5
+    minVelocty: 0.5,
+    closeOnEscape: true
 }
 },{}],187:[function(require,module,exports){
 const Penner = require('penner')
@@ -22415,6 +22416,7 @@ class Drawer extends Events
      * @param {number} [options.minVelocty=0.5] minimum velocity (pixels/millisecond) for opening and closing after a drag
      * @param {string} [options.content] HTML content for the drawer
      * @param {object} [options.contentStyles] styles for content of drawer
+     * @param {boolean} [options.closeOnEscape=true] close the drawer when escape is pressed
      * @fires opening
      * @fires closing
      * @fires opened
@@ -22730,6 +22732,19 @@ class Drawer extends Events
         document.body.addEventListener('mouseup', (e) => this._up(e))
         document.body.addEventListener('mouseleave', (e) => this._up(e))
         document.body.addEventListener('touchend', (e) => this._up(e))
+        if (this.options.closeOnEscape)
+        {
+            document.addEventListener('keydown', (e) => this._escapeClose(e))
+        }
+    }
+
+    _escapeClose(e)
+    {
+console.log('escape! ', e.code)
+        if (e.code === 'Escape')
+        {
+            this.close()
+        }
     }
 
     _down(e)
@@ -22961,6 +22976,10 @@ class Drawer extends Events
                 this.emit('opening', this)
             }
             this.opened = true
+            if (this.options.closeOnBlur)
+            {
+                this.div.focus()
+            }
         }
     }
 
