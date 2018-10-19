@@ -22740,7 +22740,6 @@ class Drawer extends Events
 
     _escapeClose(e)
     {
-console.log('escape! ', e.code)
         if (e.code === 'Escape')
         {
             this.close()
